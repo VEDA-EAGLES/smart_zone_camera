@@ -1,7 +1,7 @@
 
-// #include <gst/gst.h>
-// #include <gst/rtsp-server/rtsp-server.h>
-// #include "define.h"
+#include <gst/gst.h>
+#include <gst/rtsp-server/rtsp-server.h>
+#include "define.h"
 
 using namespace std;
 
