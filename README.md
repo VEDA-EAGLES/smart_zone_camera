@@ -2,6 +2,8 @@
 
 실행 방법
 
+mkdir build
+
 cd build
 
 cmake ..
