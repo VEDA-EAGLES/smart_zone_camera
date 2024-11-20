@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 {
     thread httpServerThread = thread(startHTTPServer, 1);
     thread httpClientThread = thread(startHTTPClient, 2);
-    // gst_init(&argc, &argv);
+    gst_init(&argc, &argv);
     thread rtspServerThread = thread(startRTSPServer, 3);
     
     httpServerThread.join();
@@ -48,5 +48,5 @@ void startHTTPClient(int thread_id)
 void startRTSPServer(int thread_id) 
 {
     GstreamerServer rtspServer;
-    // rtspServer.setRTSPServer();
+    rtspServer.setRTSPServer();
 }
