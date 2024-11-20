@@ -1,52 +1,39 @@
-#include <iostream>
-#include <thread>
-#include <mutex>
-#include "define.h"
-#include "httpServer.h"
-#include "httpClient.h"
-#include "gstreamerServer.h"
+#include <lccv.hpp>
+#include <opencv2/opencv.hpp>
+#include "yoloV8.h"
 
-using namespace std;
 
-void startHTTPServer(int);
-void startHTTPClient(int);
-void startRTSPServer(int);
-
-mutex mtx;
-
-int main(int argc, char** argv)
+YoloV8 yolov8;
+int main()
 {
-    thread httpServerThread = thread(startHTTPServer, 1);
-    thread httpClientThread = thread(startHTTPClient, 2);
-    // gst_init(&argc, &argv);
-    thread rtspServerThread = thread(startRTSPServer, 3);
-    
-    httpServerThread.join();
-    httpClientThread.join();
-    rtspServerThread.join();
-
-    return 0;
-}
-
-void startHTTPServer(int thread_id) 
-{
-    HTTPServer httpServer(MY_IP, HTTP_S_PORT);
-    httpServer.setHTTPServer();
-}
-
-void startHTTPClient(int thread_id) 
-{
-    HTTPClient httpClient;
-    httplib::Client cli(SERVER_IP, HTTP_C_PORT);
-
-    while(true) {
-        httpClient.startHTTPClient(cli);
-        this_thread::sleep_for(std::chrono::minutes(1));
+    std::cout<<"Sample program for LCCV video capture"<<std::endl;
+    std::cout<<"Press ESC to stop."<<std::endl;
+    cv::Mat image(1280, 960, CV_8UC3, cv::Scalar(255));
+    lccv::PiCamera cam;
+    cam.options->video_width=1280;
+    cam.options->video_height=960;
+    cam.options->framerate=15;
+    cam.options->verbose=true;
+    cv::namedWindow("Video",cv::WINDOW_NORMAL);
+    yolov8.load(640);
+    std::vector<Object> object;
+    cam.startVideo();
+    int ch=0;
+    while(ch!=27){
+        if(!cam.getVideoFrame(image,1000)){
+            std::cout<<"Timeout error"<<std::endl;
+        }
+        yolov8.detect(image, object);
+        yolov8.draw(image, object);
+        if(!image.empty()){
+            cv::imshow("Video",image);
+            ch=cv::waitKey(10);
+        }
+        else{
+            std::cerr << "no image" << std::endl;
+            return -1;
+        }
     }
-}
-
-void startRTSPServer(int thread_id) 
-{
-    GstreamerServer rtspServer;
-    // rtspServer.setRTSPServer();
+    cam.stopVideo();
+    cv::destroyWindow("Video");
 }
