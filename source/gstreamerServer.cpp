@@ -17,7 +17,7 @@ static void client_connected(GstRTSPServer * server, GstRTSPClient * client, gpo
 void GstreamerServer::setRTSPServer()
 {
     GstRTSPServer *server = gst_rtsp_server_new();
-    g_object_set(server, "service", "8002", NULL);
+    g_object_set(server, "service", RTSP_S_PORT, NULL);
 
     GstRTSPMountPoints *mounts = gst_rtsp_server_get_mount_points(server);
 
@@ -33,11 +33,16 @@ void GstreamerServer::setRTSPServer()
 
     gst_rtsp_server_attach(server, NULL); 
 
+    // 서버 주소 출력
+    g_print("rtsp server ready : rtsp://192.168.0.107:8082/test\n");
+
     g_main_loop_run (loop);
     
     // Clean up
     g_main_loop_unref(loop);
     gst_object_unref(server);
+
+    
 
 
 }

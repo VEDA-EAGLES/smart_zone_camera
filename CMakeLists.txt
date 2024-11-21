@@ -19,12 +19,6 @@ pkg_check_modules(GSTRTSP REQUIRED gstreamer-rtsp-server-1.0)
 
 add_executable(smart_zone_camera ${SOURCE_FILES})
 
-# target_include_directories(smart_zone_camera PRIVATE 
-# 	${CMAKE_SOURCE_DIR}/include
-# 	${GST_INCLUDE_DIRS} 
-# 	${GSTRTSP_INCLUDE_DIRS}
-# )
-
 # 라이브러리 링크
 target_link_libraries(smart_zone_camera 
     ${GST_LIBRARIES} 
