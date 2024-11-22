@@ -1,65 +1,70 @@
 #include <lccv.hpp>
 #include <opencv2/opencv.hpp>
-#include <opencv2/tracking.hpp>
-#include "yoloV8.h"
+#include "yoloX.h"  // yolox 관련 헤더 파일
 
-YoloV8 yolov8;
-
-int main()
+int main(int argc, char** argv)
 {
     std::cout << "Sample program for LCCV video capture" << std::endl;
     std::cout << "Press ESC to stop." << std::endl;
-    cv::Mat image(1280, 960, CV_8UC3, cv::Scalar(255));
+    cv::Mat frame(1280, 960, CV_8UC3, cv::Scalar(255));
     lccv::PiCamera cam;
     cam.options->video_width = 1280;
     cam.options->video_height = 960;
     cam.options->framerate = 15;
     cam.options->verbose = true;
     cv::namedWindow("Video", cv::WINDOW_NORMAL);
-    yolov8.load(640);
-    std::vector<Object> object;
     cam.startVideo();
-    int ch = 0;
-    cv::Ptr<cv::Tracker> tracker;
-    cv::Rect trackingBox;
-    bool tracker_init=false;
+    float f;
+    float FPS[16];
+    int i, Fcnt = 0;
+    std::chrono::steady_clock::time_point Tbegin, Tend;
 
-    while (ch != 27) {
-        if (!cam.getVideoFrame(image, 1000)) {
+    for(i = 0; i < 16; i++) FPS[i] = 0.0;
+
+    // YOLOX 모델 초기화
+    YoloX detector;
+    detector.init("../model/yoloxN.param", "../model/yoloxN.bin");
+
+    int fps = cam.options->framerate;
+
+    BYTETracker tracker(fps, 30);
+
+    std::cout << "Start grabbing, press ESC on Live window to terminate" << std::endl;
+
+    while(1) {
+        if (!cam.getVideoFrame(frame, 1000)) {
             std::cout << "Timeout error" << std::endl;
         }
-        if (!image.empty()) {
-            yolov8.detect(image, object);
-            yolov8.draw(image, object);
-            if (tracker_init) {
-                bool ok = tracker->update(image, trackingBox);
-                if (ok) {
-                    cv::rectangle(image, trackingBox, cv::Scalar(0, 255, 0), 2);
-                } else {
-                    cv::putText(image, "Tracking failure detected", cv::Point(100,80), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0,0,255),2);
-                    tracker_init=false;
-                }
-            } else {
-                if(!object.empty() && object[0].label==0) {
-                    std::cout << "tracking start" << std::endl;
-                    tracker = cv::TrackerKCF::create();
-                    trackingBox = cv::Rect(static_cast<int>(object[0].rect.x), static_cast<int>(object[0].rect.y), static_cast<int>(object[0].rect.width), static_cast<int>(object[0].rect.height));
 
-                    tracker->init(image, trackingBox);
-                    cv::rectangle(image, trackingBox, cv::Scalar( 255, 0, 0 ), 2);
-                    tracker_init=true;
-                }
-            }
+        Tbegin = std::chrono::steady_clock::now();
 
-            cv::imshow("Video", image);
-            ch = cv::waitKey(10);
+        std::vector<Object> objects;
+        detector.detect_yolox(frame, objects);  // 객체 탐지
+
+        // 트래킹 처리
+        std::vector<STrack> output_stracks = tracker.update(objects);
+
+        for (size_t i = 0; i < output_stracks.size(); i++) {
+            std::vector<float> tlwh = output_stracks[i].tlwh;
+            cv::Scalar s = tracker.get_color(output_stracks[i].track_id);
+            cv::putText(frame, cv::format("%d" , output_stracks[i].track_id), cv::Point(tlwh[0], tlwh[1] - 5),
+                        0, 0.6, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
+            cv::rectangle(frame, cv::Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
         }
-        else {
-            std::cerr << "no image" << std::endl;
-            return -1;
-        }
+
+        Tend = std::chrono::steady_clock::now();
+        // FPS 계산
+        f = std::chrono::duration_cast<std::chrono::milliseconds>(Tend - Tbegin).count();
+        if (f > 0.0) FPS[((Fcnt++) & 0x0F)] = 1000.0 / f;
+        for(f = 0.0, i = 0; i < 16; i++) { f += FPS[i]; }
+        cv::putText(frame, cv::format("FPS %0.2f", f / 16), cv::Point(10, 20), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 0, 255));
+
+        cv::imshow("tracking", frame);
+        char esc = cv::waitKey(5);
+        if (esc == 27) break;
     }
 
     cam.stopVideo();
     cv::destroyWindow("Video");
+    return 0;
 }
