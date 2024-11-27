@@ -13,14 +13,34 @@ void HTTPServer::setResponse()
 {
     server.Post("/area/insert", [](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
+        cout << " test - 1 " << endl;
+        cout << req.body << endl;
+        json jsonData = json::parse(req.body);
+        cout << " test - 2 " << endl;
+        Area area;
+        area.setArea(jsonData["area_name"],jsonData["camera_id"],jsonData["area_id"],jsonData["x"],jsonData["y"],jsonData["width"],jsonData["height"]);
+        areas.push_back(area);
+        for (auto x : areas) {
+            x.showAreaInfo();
+        }
+        json jsonHandler; jsonHandler["status"] = 200; string jsonBody = jsonHandler.dump();
+        
+        res.set_content(jsonBody, "application/json");
+        mtx.unlock();
+	});
+
+    server.Delete("/area/delete", [](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        cout << "delete area" << endl;
         cout << req.body << endl;
         json jsonData; jsonData["status"] = 200; string jsonBody = jsonData.dump();
         res.set_content(jsonBody, "application/json");
         mtx.unlock();
 	});
 
-    server.Get("/area/delete", [](const httplib::Request& req, httplib::Response& res) {
+    server.Delete("/area/all", [](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
+        cout << "delete all" << endl;
         json jsonData; jsonData["status"] = 200; string jsonBody = jsonData.dump();
         res.set_content(jsonBody, "application/json");
         mtx.unlock();

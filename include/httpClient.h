@@ -12,7 +12,7 @@ class HTTPClient
 {
 
 private:
-    string getVideoInfo(string, string, string, string, string, string, string);
+    string getVideoInfo(string areaName, int areaId, int cameraId, int x, int y, int width, int height);
 
 public:
     HTTPClient();

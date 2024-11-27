@@ -1,10 +1,12 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <vector>
 #include "define.h"
 #include "httpServer.h"
 #include "httpClient.h"
 #include "gstreamerServer.h"
+#include "area.h"
 
 using namespace std;
 
@@ -13,6 +15,7 @@ void startHTTPClient(int);
 void startRTSPServer(int);
 
 mutex mtx;
+vector<Area> areas;
 
 int main(int argc, char** argv)
 {

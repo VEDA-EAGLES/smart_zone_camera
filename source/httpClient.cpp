@@ -26,10 +26,11 @@ string HTTPClient::getVideoInfo(string areaName, int areaId, int cameraId, int x
     return jsonBody;                     
 }
 
+// 카메라에서 서버로 주기적 비디오 정보 송신
 void HTTPClient::startHTTPClient(httplib::Client& cli)
 {  
     mtx.lock();
-    string jsonBody = getVideoInfo("areaId","cameraId","x1","y1","x2","y2","areaName");
+    string jsonBody = getVideoInfo("areaName",1,0,0,0,0,0);
     auto res = cli.Post("/video", jsonBody, "application/json");
     if (res) {  
     } else {
