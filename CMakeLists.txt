@@ -10,6 +10,7 @@ set(SOURCE_FILES
     source/gstreamerServer.cpp
     source/httpClient.cpp
     source/httpServer.cpp
+    source/area.cpp
 )
 
 # 실행 파일 생성
