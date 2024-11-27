@@ -16,6 +16,8 @@ set(SOURCE_FILES
     src/lapjv.cpp
     src/utils.cpp
     src/yoloX.cpp
+    src/Piframe.cpp
+    src/SmartZoneCamera.cpp
     main.cpp
 )
 
