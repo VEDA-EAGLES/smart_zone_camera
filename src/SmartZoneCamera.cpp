@@ -1,4 +1,5 @@
 #include "SmartZoneCamera.h"
+#include "area.h"
 #include <iostream>
 
 SmartZoneCamera::SmartZoneCamera()
@@ -23,13 +24,29 @@ bool SmartZoneCamera::initialize() {
 
     detector.init("../model/yoloxN.param", "../model/yoloxN.bin");
     cv::namedWindow("Video", cv::WINDOW_NORMAL);
+
+    //test용 코드
+    cap.open("../model/MOT17-11-raw.webm");
+
+    // 비디오 파일이 열렸는지 확인
+    if (!cap.isOpened()) {
+        std::cerr << "Error: Could not open the video file!" << std::endl;
+    }
+
     return true;
 }
 
 void SmartZoneCamera::processFrame() {
-    if (!cam.getVideoFrame(frame, 1000)) {
+    /*if (!cam.getVideoFrame(frame, 1000)) {
         std::cerr << "Timeout error while grabbing frame." << std::endl;
         return;
+    }*/
+
+    cap >> frame; // 또는 cap.read(frame);
+
+    // 프레임이 없으면 (영상이 끝났으면) 종료
+    if (frame.empty()) {
+        std::cout << "End of video." << std::endl;
     }
 
     fpsInfo.startCheckFrame();
@@ -40,15 +57,22 @@ void SmartZoneCamera::processFrame() {
 
     // Object tracking
     std::vector<STrack> output_stracks = tracker.update(objects);
+    Area_Controller area_ctrl;
+
+    std::vector<Area> test;
+    test.push_back(Area(cv::Rect(0,10,300,600),0));
+    test.push_back(Area(cv::Rect(300,10,300,600),1));
+    area_ctrl.update_area(test,frame);
 
     // Draw tracking results
     for (size_t i = 0; i < output_stracks.size(); i++) {
         std::vector<float> tlwh = output_stracks[i].tlwh;
-        cv::Scalar s = tracker.get_color(output_stracks[i].track_id);
-        cv::putText(frame, cv::format("%d", output_stracks[i].track_id), cv::Point(tlwh[0], tlwh[1] - 5),
-                    0, 0.6, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
-        cv::rectangle(frame, cv::Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
+        Area a(tlwh[0],tlwh[1],tlwh[2],tlwh[3]);
+        if(area_ctrl.area_within(a,output_stracks[i].track_id)){
+            area_ctrl.draw_area(frame,a,output_stracks[i].track_id);
+        }
     }
+    area_ctrl.print_peoplecount();
 
     fpsInfo.endCheckFrame();
     float FPS = fpsInfo.calculateFrame();

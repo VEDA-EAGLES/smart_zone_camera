@@ -12,6 +12,7 @@
 class SmartZoneCamera {
 private:
     lccv::PiCamera cam;
+    cv::VideoCapture cap;
     Piframe fpsInfo;
     YoloX detector;
     BYTETracker tracker;
