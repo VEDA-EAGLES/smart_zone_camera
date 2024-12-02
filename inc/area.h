@@ -22,6 +22,7 @@ public:
     ~Area();
     void setArea(string name, int cameraId, int id, int x, int y, int width, int height);
     void showAreaInfo();
+    bool deleteArea(int areaId);
 };
 
 
