@@ -57,12 +57,11 @@ void SmartZoneCamera::processFrame() {
 
     // Object tracking
     std::vector<STrack> output_stracks = tracker.update(objects);
-    Area_Controller area_ctrl;
 
     std::vector<Area> test;
-    test.push_back(Area(cv::Rect(0,10,300,600),0));
-    test.push_back(Area(cv::Rect(300,10,300,600),1));
-    area_ctrl.update_area(test,frame);
+    test.push_back(Area(0,10,300,600,1,"hello"));
+    test.push_back(Area(300,10,300,600,2,"hihi"));
+    area_ctrl.update(test,frame);
 
     // Draw tracking results
     for (size_t i = 0; i < output_stracks.size(); i++) {
@@ -72,7 +71,7 @@ void SmartZoneCamera::processFrame() {
             area_ctrl.draw_area(frame,a,output_stracks[i].track_id);
         }
     }
-    area_ctrl.print_peoplecount();
+    area_ctrl.calc_path();
 
     fpsInfo.endCheckFrame();
     float FPS = fpsInfo.calculateFrame();

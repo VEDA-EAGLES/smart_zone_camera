@@ -1,78 +1,101 @@
-
 #include "area.h"
 
-Area::Area(cv::Rect rect)
-{
-    x=rect.x;
-    y=rect.y;
-    width=rect.width;
-    height=rect.height;
+void Area_Handler::init(){
+    current_time=std::chrono::steady_clock::now();
 }
 
-Area::Area(cv::Rect rect, int id){
-    x=rect.x;
-    y=rect.y;
-    width=rect.width;
-    height=rect.height;
-    area_id=id;
-}
-
-Area::Area(float x,float y,float width,float height)
-{
-    this->x=static_cast<int>(x);
-    this->y=static_cast<int>(y);
-    this->width=static_cast<int>(width);
-    this->height=static_cast<int>(height);
-}
-
-cv::Rect Area::get_Area() {
-    return cv::Rect(x,y,width,height);
-}
-
-int Area::get_Area_id(){
-    return area_id;
-}
-
-Area::~Area()
-{
-}
-
-void Area_Controller::update_area(std::vector<Area> list,cv::Mat& frame) {
+void Area_Handler::update(std::vector<Area> list,cv::Mat& frame) {
     area_list=list;
-    int id=1;
+    prev_time=current_time;
+    current_time=std::chrono::steady_clock::now();
+    objects.clear();
     for (Area a:area_list) {
-        cv::putText(frame, cv::format("%d", a.get_Area_id()), cv::Point(a.get_Area().x, a.get_Area().y - 5),
+        int id=a.area_id;
+        cv::putText(frame, cv::format("%d : %s", id, a.area_name), cv::Point(a.x, a.y - 5),
                     0, 0.6, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
-        cv::rectangle(frame, a.get_Area(), cv::Scalar(37 * id % 255, 17 * id % 255, 29 * id % 255), 2);
-        id+=1;
+        cv::rectangle(frame, cv::Rect(a.x,a.y,a.width,a.height), cv::Scalar(37 * id % 255, 17 * id % 255, 29 * id % 255), 2);
     }
 }
 
-bool Area_Controller::area_within(Area a2, int id) {
+bool Area_Handler::area_within(Area a2, int id) {
     for (Area a1:area_list) {
-        if (a1.get_Area().x<a2.get_Area().x && a1.get_Area().y<a2.get_Area().y
-            && a1.get_Area().x+a1.get_Area().width>a2.get_Area().x+a2.get_Area().width/2
-            && a1.get_Area().y+a1.get_Area().height>a2.get_Area().y+a2.get_Area().height/2){
-            calc_peoplecount(a1,id);
+        if (a1.x<a2.x && a1.y<a2.y && a1.x+a1.width>a2.x+a2.width/2 && a1.y+a1.height>a2.y+a2.height/2){
+            if(objects[a1.area_id].find(id) == objects[a1.area_id].end()){
+                objects[a1.area_id][id].Tbegin=current_time;
+                objects[a1.area_id][id].Tend=current_time;
+            }
+            else{
+                objects[a1.area_id][id].Tend=current_time;
+            }
             return true;
         }
     }
     return false;
 }
 
-void Area_Controller::draw_area(cv::Mat& frame, Area a, int id) {
+void Area_Handler::draw_area(cv::Mat& frame, Area a, int id) {
     int idx=id+static_cast<int>(area_list.size());
-    cv::putText(frame, cv::format("%d", id), cv::Point(a.get_Area().x, a.get_Area().y - 5),
-                    0, 0.6, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
-    cv::rectangle(frame, a.get_Area(), cv::Scalar(37 * idx % 255, 17 * idx % 255, 29 * idx % 255), 2);
+    cv::putText(frame, cv::format("%d", id), cv::Point(a.x, a.y - 5), 0, 0.6, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
+    cv::rectangle(frame, cv::Rect(a.x,a.y,a.width,a.height), cv::Scalar(37 * idx % 255, 17 * idx % 255, 29 * idx % 255), 2);
 }
 
-void Area_Controller::calc_peoplecount(Area a, int id){
-    peoplecount[a.get_Area_id()].push_back(id);
+void Area_Handler::calc_peoplecount(){
+    std::vector<int> peoplecount;
+    for (Area a1:area_list){
+        int size=0;
+        for (auto it = objects[a1.area_id].begin(); it != objects[a1.area_id].end(); it++) {
+            if(it->second.Tend>=current_time)
+                size++;
+        }
+        peoplecount.push_back(size);
+    }
 }
 
-void Area_Controller::print_peoplecount(){
-    for(Area a:area_list){
-        std::cout<<a.get_Area_id()<<" : "<<peoplecount[a.get_Area_id()].size()<<std::endl;
+void Area_Handler::calc_timespent(){
+    std::vector<int> timespent;
+    for (Area a1:area_list){
+        int size=0;
+        float sum=0;
+        for (auto it = objects[a1.area_id].begin(); it != objects[a1.area_id].end(); it++) {
+            if(it->second.Tend>=current_time){
+                size++;
+                std::chrono::duration<float> duration = it->second.Tend-it->second.Tbegin;
+                sum+=duration.count();
+            }
+        }
+        if(size>0)
+            timespent.push_back(sum/size);
+        else
+            timespent.push_back(0);
+    }
+}
+
+void Area_Handler::calc_path(){//사용안함
+    std::map<std::pair<int, int>, int> total_path;
+    int max_id = -1;
+    for (Area a1:area_list){
+        int id = objects[a1.area_id].rbegin()->first;
+        if(id>max_id)
+            max_id=id;
+    }
+    for(int id=1;id<=max_id;id++){
+        int prev_area_id=-1,area_id=-1;
+        std::chrono::steady_clock::time_point last_time;
+        for (Area a1:area_list){
+            auto key=objects[a1.area_id].find(id);
+            if(key!=objects[a1.area_id].end()){
+                if(area_id==-1){
+                    area_id=a1.area_id;
+                    last_time=key->second.Tend;
+                }
+                else if(last_time<key->second.Tend){
+                    prev_area_id=area_id;
+                    area_id=a1.area_id;
+                    last_time=key->second.Tend;
+                }
+            }
+        }
+        if(prev_area_id!=-1 && area_id!=-1)
+            total_path[std::make_pair(prev_area_id, area_id)]++;
     }
 }

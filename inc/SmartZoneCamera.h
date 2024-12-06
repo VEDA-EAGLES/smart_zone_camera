@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include "yoloX.h"
 #include "Piframe.h"
+#include "area.h"
 #include <chrono>
 #include <ctime>
 #include <vector>
@@ -16,6 +17,7 @@ private:
     Piframe fpsInfo;
     YoloX detector;
     BYTETracker tracker;
+    Area_Handler area_ctrl;
     cv::VideoWriter originalVideoWriter;
     cv::VideoWriter trackingVideoWriter;
     int fps;
