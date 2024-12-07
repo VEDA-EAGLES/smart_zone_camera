@@ -1,5 +1,4 @@
-#ifndef SMART_ZONE_CAMERA_H
-#define SMART_ZONE_CAMERA_H
+#pragma once
 
 #include <lccv.hpp>
 #include <opencv2/opencv.hpp>
@@ -12,25 +11,31 @@
 
 class SmartZoneCamera {
 private:
+    SmartZoneCamera();
+    ~SmartZoneCamera();
+    SmartZoneCamera(const SmartZoneCamera& ref) {}
+    SmartZoneCamera& operator=(const SmartZoneCamera& ref) {}
     lccv::PiCamera cam;
-    cv::VideoCapture cap;
     Piframe fpsInfo;
     YoloX detector;
     BYTETracker tracker;
     Area_Handler area_ctrl;
     cv::VideoWriter originalVideoWriter;
     cv::VideoWriter trackingVideoWriter;
+    cv::VideoWriter udpWriter;
     int fps;
     cv::Mat frame;
+    cv::VideoCapture cap;
 
 public:
-    SmartZoneCamera();
-    ~SmartZoneCamera();
-
+    static SmartZoneCamera& getInstance() {
+        static SmartZoneCamera s;
+        return s;
+    }
     bool initialize();
     void processFrame();
     void run();
     void finalize();
+    
 };
 
-#endif // SMART_ZONE_CAMERA_H

@@ -2,7 +2,7 @@
 #define YOLOX_H
 
 #include <opencv2/opencv.hpp>
-#include "net.h"
+#include <ncnn/net.h>
 #include "BYTETracker.h"  // BYTETracker 관련 코드 포함
 
 struct GridAndStride

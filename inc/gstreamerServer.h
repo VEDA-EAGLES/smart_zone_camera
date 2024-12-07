@@ -4,6 +4,7 @@
 #include "define.h"
 #include <opencv2/opencv.hpp>
 #include <thread>
+#include "SmartZoneCamera.h"
 
 using namespace std;
 using namespace cv;
