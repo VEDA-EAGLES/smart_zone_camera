@@ -11,7 +11,7 @@ using namespace cv;
 class GstreamerServer
 {
 private:
-    /* data */
+
 public:
     GstreamerServer(/* args */);
     ~GstreamerServer();
