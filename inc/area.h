@@ -4,15 +4,16 @@
 struct Area
 {
     int x,y,width,height;
-    int area_id;
-    std::string area_name;
-    Area(int x, int y, int width, int height, int area_id=0, std::string area_name=""){
+    int areaId,cameraId;
+    std::string areaName;
+    Area(int x, int y, int width, int height, int areaId=0, int cameraId=0,std::string areaName=""){
         this->x = x;
         this->y = y;
         this->width = width;
         this->height = height;
-        this->area_id = area_id;
-        this->area_name = area_name;
+        this->areaId = areaId;
+        this->cameraId = cameraId;
+        this->areaName = areaName;
     };
     Area(float x, float y, float width, float height){
         this->x = static_cast<int>(x);
@@ -32,8 +33,9 @@ private:
     std::map<int, std::map<int, ObjectInfo>> objects; //key: area_id, value:(key:object_id, value:Tbegin, Tend)
     std::chrono::steady_clock::time_point current_time, prev_time;
 public:
+    void insertArea(std::string name, int cameraId, int id, int x, int y, int width, int height);
     void init();
-    void update(std::vector<Area> list,cv::Mat& frame);
+    void update(cv::Mat& frame);
     bool area_within(Area a2, int id);
     void draw_area(cv::Mat& frame, Area a, int id);
     void calc_peoplecount();// 영역 내 사람 수

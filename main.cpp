@@ -1,13 +1,11 @@
-#include "SmartZoneCamera.h"
+
 #include <iostream>
 #include <thread>
 #include <mutex>
-#include <vector>
 #include "define.h"
 #include "httpServer.h"
 #include "httpClient.h"
 #include "gstreamerServer.h"
-#include "area.h"
 
 using namespace std;
 
@@ -15,7 +13,6 @@ void startHTTPServer(int);
 void startHTTPClient(int);
 
 mutex mtx;
-vector<Area> areas;
 
 int main(int argc, char** argv)
 {
@@ -25,14 +22,14 @@ int main(int argc, char** argv)
     GstreamerServer rtspServer;
     rtspServer.setRTSPServer(argc,argv);
 
-    SmartZoneCamera camera;
+    // SmartZoneCamera camera;
 
-    if (!camera.initialize()) {
-        std::cerr << "Failed to initialize the camera system." << std::endl;
-        return -1;
-    }
+    // if (!camera.initialize()) {
+    //     std::cerr << "Failed to initialize the camera system." << std::endl;
+    //     return -1;
+    // }
 
-    camera.run();
+    // camera.run();
 
     httpServerThread.join();
     httpClientThread.join();
