@@ -13,13 +13,14 @@ void HTTPServer::setResponse()
 {
     SmartZoneCamera& smartZoneCamera = SmartZoneCamera::getInstance();
 
-    server.Post("/area/insert", [](const httplib::Request& req, httplib::Response& res) {
+    server.Post("/area/insert", [&smartZoneCamera](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         json jsonData = json::parse(req.body);
         jsonData = jsonData["area"][0];
-
+        cout << jsonData["area_name"] << " is inserted in area_list" << endl;
         smartZoneCamera.area_ctrl.insertArea(
             jsonData["area_name"],
+            jsonData["color"],
             jsonData["camera_id"],
             jsonData["area_id"],
             jsonData["x"],
@@ -27,35 +28,31 @@ void HTTPServer::setResponse()
             jsonData["width"],
             jsonData["height"]
         );
-        
         json jsonHandler; jsonHandler["status"] = 200; string jsonBody = jsonHandler.dump();
         
         res.set_content(jsonBody, "application/json");
         mtx.unlock();
 	});
 
-    server.Delete("/area/delete", [](const httplib::Request& req, httplib::Response& res) {
+    server.Delete("/area", [&smartZoneCamera](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
-        json jsonData = json::parse(req.body);
 
+        if (req.has_param("area_id")) {
+            cout << "delete area_id : " << req.get_param_value("area_id") << endl;
+            int areaId = stoi(req.get_param_value("area_id"));
+            smartZoneCamera.area_ctrl.deleteArea(areaId);
+        }
         
-        // for (auto it = areas.begin(); it != areas.end(); it++) {  
-        //     if (it->deleteArea(jsonData["area_id"])) {
-        //         it = areas.erase(it);  
-        //         break;
-        //     }
-        // }
-        // for (auto x : areas) {x.showAreaInfo();}
-
         json jsonHandler; jsonHandler["status"] = 200; string jsonBody = jsonHandler.dump();
         res.set_content(jsonBody, "application/json");
         mtx.unlock();
 	});
 
-    server.Delete("/area/all", [](const httplib::Request& req, httplib::Response& res) {
+    server.Delete("/area/all", [&smartZoneCamera](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
 
-        // areas.clear();
+        cout << "delete all areas" << endl;
+        smartZoneCamera.area_ctrl.deleteArea(-1);
 
         json jsonData; jsonData["status"] = 200; string jsonBody = jsonData.dump();
         res.set_content(jsonBody, "application/json");
@@ -66,6 +63,7 @@ void HTTPServer::setResponse()
 void HTTPServer::setHTTPServer()
 {
     setResponse();
+    cout << this->ip << "/" << this->port << " " << "start setHTTPServer" << endl;
     server.listen(this->ip, this->port);
 }
 

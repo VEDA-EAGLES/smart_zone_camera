@@ -17,9 +17,24 @@
 //     }
 // }
 
-void Area_Handler::insertArea(std::string name, int cameraId, int id, int x, int y, int width, int height)
+void Area_Handler::insertArea(std::string name, std::string color, int cameraId, int id, int x, int y, int width, int height)
 {
-    area_list.push_back(Area(x,y,width,height,id,cameraId,name));
+    area_list.push_back(Area(x,y,width,height,id,cameraId,name,color));
+}
+
+void Area_Handler::deleteArea(int areaId)
+{
+    if (areaId == -1) {
+        area_list.clear();
+    } else {
+        for (auto it = area_list.begin(); it != area_list.end(); it++) {  
+            if (it->areaId == areaId) {
+                it = area_list.erase(it);  
+                break;
+            }
+        }
+    }
+    
 }
 
 void Area_Handler::init(){

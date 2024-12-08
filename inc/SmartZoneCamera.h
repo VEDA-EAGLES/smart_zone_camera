@@ -19,7 +19,6 @@ private:
     Piframe fpsInfo;
     YoloX detector;
     BYTETracker tracker;
-    Area_Handler area_ctrl;
     cv::VideoWriter originalVideoWriter;
     cv::VideoWriter trackingVideoWriter;
     cv::VideoWriter udpWriter;
@@ -36,6 +35,6 @@ public:
     void processFrame();
     void run();
     void finalize();
-    
+    Area_Handler area_ctrl;
 };
 

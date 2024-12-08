@@ -17,7 +17,7 @@ mutex mtx;
 int main(int argc, char** argv)
 {
     thread httpServerThread = thread(startHTTPServer, 1);
-    thread httpClientThread = thread(startHTTPClient, 2);
+    // thread httpClientThread = thread(startHTTPClient, 2);
     
     GstreamerServer rtspServer;
     rtspServer.setRTSPServer(argc,argv);
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     // camera.run();
 
     httpServerThread.join();
-    httpClientThread.join();
+    // httpClientThread.join();
 
     return 0;
 }
