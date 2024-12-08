@@ -5,8 +5,8 @@ struct Area
 {
     int x,y,width,height;
     int areaId,cameraId;
-    std::string areaName;
-    Area(int x, int y, int width, int height, int areaId=0, int cameraId=0,std::string areaName=""){
+    std::string areaName,color;
+    Area(int x, int y, int width, int height, int areaId=0, int cameraId=0,std::string areaName="",std::string color=""){
         this->x = x;
         this->y = y;
         this->width = width;
@@ -14,6 +14,7 @@ struct Area
         this->areaId = areaId;
         this->cameraId = cameraId;
         this->areaName = areaName;
+        this->color = color;
     };
     Area(float x, float y, float width, float height){
         this->x = static_cast<int>(x);
@@ -33,7 +34,8 @@ private:
     std::map<int, std::map<int, ObjectInfo>> objects; //key: area_id, value:(key:object_id, value:Tbegin, Tend)
     std::chrono::steady_clock::time_point current_time, prev_time;
 public:
-    void insertArea(std::string name, int cameraId, int id, int x, int y, int width, int height);
+    void insertArea(std::string name, std::string color, int cameraId, int id, int x, int y, int width, int height);
+    void deleteArea(int areaId);    // areaId = -1 -> deleteAll else delete areaId
     void init();
     void update(cv::Mat& frame);
     bool area_within(Area a2, int id);
