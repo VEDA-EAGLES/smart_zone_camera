@@ -23,10 +23,10 @@ bool SmartZoneCamera::initialize() {
     }
 
     detector.init("../model/yoloxN.param", "../model/yoloxN.bin");
-    cv::namedWindow("Video", cv::WINDOW_NORMAL);
+    cv::namedWindow("tracking", cv::WINDOW_NORMAL);
 
     //test용 코드
-    cap.open("../model/MOT17-11-raw.webm");
+    cap.open("../model/test_video_3.mp4");
 
     // 비디오 파일이 열렸는지 확인
     if (!cap.isOpened()) {
@@ -35,7 +35,7 @@ bool SmartZoneCamera::initialize() {
 
     return true;
 }
-
+std::chrono::system_clock::time_point last_video_event_time = std::chrono::system_clock::now();
 void SmartZoneCamera::processFrame() {
     /*if (!cam.getVideoFrame(frame, 1000)) {
         std::cerr << "Timeout error while grabbing frame." << std::endl;
@@ -59,8 +59,9 @@ void SmartZoneCamera::processFrame() {
     std::vector<STrack> output_stracks = tracker.update(objects);
 
     std::vector<Area> test;
-    test.push_back(Area(0,10,300,600,1,"hello"));
-    test.push_back(Area(300,10,300,600,2,"hihi"));
+    test.push_back(Area(0,20,600,200,1,"area1"));
+    test.push_back(Area(0,320,600,200,2,"area2"));
+    //test.push_back(Area(600,20,300,600,3,"area3"));
     area_ctrl.update(test,frame);
 
     // Draw tracking results
@@ -71,7 +72,13 @@ void SmartZoneCamera::processFrame() {
             area_ctrl.draw_area(frame,a,output_stracks[i].track_id);
         }
     }
-    area_ctrl.calc_path();
+    area_ctrl.calc_timespent();
+    auto now = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed = now - last_video_event_time;
+    if (elapsed.count() >= ELAPSEDTIME) {
+        last_video_event_time = now;
+        //area_ctrl.calc_path();
+    }
 
     fpsInfo.endCheckFrame();
     float FPS = fpsInfo.calculateFrame();
