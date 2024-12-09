@@ -67,7 +67,7 @@ private:
     std::vector<Area> area_list;
     std::map<int, std::map<int, ObjectInfo>> objects; //key: area_id, value:(key:object_id, value:Tbegin, Tend)
     std::chrono::system_clock::time_point current_time, prev_time;
-    std::map<std::pair<int, int>, std::chrono::system_clock::time_point> last_spent_time;
+    std::vector<int> lost_objects;
 public:
     void init();
     void update(std::vector<Area> list,cv::Mat& frame);

@@ -51,6 +51,11 @@ std::vector<People_count> Area_Handler::calc_peoplecount() {
                 count++;
         }
         result.emplace_back(a.area_id, count, prev_time, current_time);
+        /*std::cout << "Area ID = " << a.area_id
+                    << ", count = " << count
+                    << ", Begin Time = " << prev_time.time_since_epoch().count()
+                    << ", End Time = " << current_time.time_since_epoch().count()
+                    << std::endl;*/
     }
     return result;
 }
@@ -62,22 +67,23 @@ std::vector<People_stay> Area_Handler::calc_timespent() {
         int area_id = area_pair.first;
         auto& object_map = area_pair.second;
 
-        std::vector<int> objects_to_remove;
-
         for (const auto& obj_pair : object_map) {
             int object_id = obj_pair.first;
             const auto& obj_info = obj_pair.second;
 
-            // 객체가 1초 이상 사라졌는지 확인
             auto time_since_last_seen = std::chrono::duration_cast<std::chrono::seconds>(current_time - obj_info.Tend);
             if (time_since_last_seen.count() >= 1) {
-                // 머문 시간 계산
                 auto duration = std::chrono::duration_cast<std::chrono::seconds>(obj_info.Tend - obj_info.Tbegin);
 
-                // 머문 시간이 0보다 큰 경우에만 결과에 추가
-                if (duration.count() > 0) {
+                if (duration.count() > 0 && std::find(lost_objects.begin(), lost_objects.end(), object_id) == lost_objects.end()) {
                     result.emplace_back(area_id, duration.count(), obj_info.Tbegin, obj_info.Tend);
-                    objects_to_remove.push_back(object_id);
+                    lost_objects.push_back(object_id);
+                    /*std::cout << "Added object: Area ID = " << area_id
+                              << ", Object ID = " << object_id
+                              << ", Duration = " << duration.count() << " seconds"
+                              << ", Begin Time = " << obj_info.Tbegin.time_since_epoch().count()
+                              << ", End Time = " << obj_info.Tend.time_since_epoch().count()
+                              << std::endl;*/
                 }
             }
         }
@@ -107,7 +113,7 @@ std::vector<People_move> Area_Handler::calc_path() {
                     const ObjectInfo& other_info = it->second;
                     
                     if (other_info.Tbegin > info.Tend && 
-                        std::chrono::duration_cast<std::chrono::seconds>(current_time - other_info.Tend).count() <= 5.0) {
+                        std::chrono::duration_cast<std::chrono::seconds>(current_time - other_info.Tend).count() <= ELAPSEDTIME) {
                         path_counts[{from_area_id, to_area_id}]++;
                     }
                 }
@@ -117,6 +123,12 @@ std::vector<People_move> Area_Handler::calc_path() {
     
     for (const auto& path : path_counts) {
         result.emplace_back(path.first.first, path.first.second, path.second, prev_time, current_time);
+        /*std::cout << "from_area_id = " << path.first.first
+                    << ", to_area_id = " << path.first.second
+                    << ", count = " << path.second
+                    << ", Begin Time = " << prev_time.time_since_epoch().count()
+                    << ", End Time = " << current_time.time_since_epoch().count()
+                    << std::endl;*/
     }
     
     return result;
