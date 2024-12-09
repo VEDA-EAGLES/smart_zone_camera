@@ -16,14 +16,13 @@ bool SmartZoneCamera::initialize() {
 
     std::string pipeline = 
         "libcamerasrc ! videoconvert ! video/x-raw, framerate=10/1, width=640, height=480, format=BGR ! appsink";
-
     cap.open(pipeline, cv::CAP_GSTREAMER);
     if (!cap.isOpened()) {
         cout << "can't create video capture\n";
         return false;
     }
     // cv::VideoWriter writer;
-    udpWriter.open("appsrc ! videoconvert ! video/x-raw, format=I420 ! x264enc tune=zerolatency ! rtph264pay ! udpsink host=112.186.2.175 port=8555",
+    udpWriter.open("appsrc ! videoconvert ! video/x-raw, format=I420 ! x264enc tune=zerolatency ! rtph264pay ! udpsink host=192.168.0.107 port=8083",
         cv::CAP_GSTREAMER, 0, 30.0, cv::Size(640, 480), true);
 
     if (!udpWriter.isOpened()) {
@@ -35,10 +34,6 @@ bool SmartZoneCamera::initialize() {
 }
 
 void SmartZoneCamera::processFrame() {
-    /*if (!cam.getVideoFrame(frame, 1000)) {
-        std::cerr << "Timeout error while grabbing frame." << std::endl;
-        return;
-    }*/
     cap >> frame; // 또는 cap.read(frame);
 
     // 프레임이 없으면 (영상이 끝났으면) 종료
@@ -66,31 +61,12 @@ void SmartZoneCamera::processFrame() {
     float FPS = fpsInfo.calculateFrame();
     cv::putText(frame, cv::format("FPS %0.2f", FPS / 16), cv::Point(10, 20), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 0, 255));
 
-    // cv::imshow("tracking", frame);
-    // Save original frame
-    // if (!originalVideoWriter.isOpened()) {
-    //     originalVideoWriter.open("./original_video.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, cv::Size(1280, 960), true);
-    // }
-    // originalVideoWriter.write(frame);
-
-    // Save tracked frame
-    // if (!trackingVideoWriter.isOpened()) {
-    //     trackingVideoWriter.open("./tracking_video.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, cv::Size(1280, 960), true);
-    // }
-    // trackingVideoWriter.write(frame);
-    // cv::putText(frame, "test", Point(10, 40), 2, 1.2, Scalar(0, 255, 0));
     udpWriter.write(frame);
 }
 
 void SmartZoneCamera::run() {
-    std::cout << "Starting main loop. Press ESC to exit." << std::endl;
-    
     while (true) {
         processFrame();
-
-        // Exit on ESC key
-        // char esc = cv::waitKey(5);
-        // if (esc == 27) break;
     }
 }
 
