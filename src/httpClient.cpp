@@ -17,11 +17,22 @@ void HTTPClient::sendPeopleCount(httplib::Client& cli, std::vector<People_count>
 {  
     mtx.lock();
     if (!peopleCnts.empty()) {
-         std::cout << " sendPeopleCount " << endl;
-
-        
-
-
+        std::cout << " sendPeopleCount " << endl;
+        json arr;
+        arr["data"] = json::array();
+        for (auto p:peopleCnts) {
+            json data;
+            data["area_id"] = p.area_id;
+            data["people_count"] = p.count;
+            data["start_time"] = p.start_time;
+            data["end_time"] = p.end_time;
+            arr["data"].push_back(data);
+        }
+        string jsonBody = arr.dump();
+        auto res = cli.Post("/peoplecnt", jsonBody, "application/json");
+        if (!res) {  
+            std::cout << "Error: " << res.error() << std::endl;
+        } 
     }
     mtx.unlock();
 }
@@ -30,7 +41,24 @@ void HTTPClient::sendPeopleMove(httplib::Client& cli, std::vector<People_move> p
 {  
     mtx.lock();
     if (!peopleMoves.empty()) {
-         std::cout << " sendPeopleMove " << endl;
+        std::cout << " sendPeopleMove " << endl;
+
+        json arr;
+        arr["data"] = json::array();
+        for (auto p:peopleMoves) {
+            json data;
+            data["from_area_id"] = p.from_area_id;
+            data["to_area_id"] = p.to_area_id;
+            data["count"] = p.count;
+            data["start_time"] = p.start_time;
+            data["end_time"] = p.end_time;
+            arr["data"].push_back(data);
+        }
+        string jsonBody = arr.dump();
+        auto res = cli.Post("/peoplemove", jsonBody, "application/json");
+        if (!res) {  
+            std::cout << "Error: " << res.error() << std::endl;
+        } 
     }
     mtx.unlock();
 }
@@ -39,7 +67,23 @@ void HTTPClient::sendPeopleStay(httplib::Client& cli, std::vector<People_stay> p
 {  
     mtx.lock();
     if (!peopleStays.empty()) {
-         std::cout << " sendPeopleStay " << endl;
+        std::cout << " sendPeopleStay " << endl;
+
+        json arr;
+        arr["data"] = json::array();
+        for (auto p:peopleStays) {
+            json data;
+            data["area_id"] = p.area_id;
+            data["stay_time"] = p.stay_time;
+            data["start_time"] = p.start_time;
+            data["end_time"] = p.end_time;
+            arr["data"].push_back(data);
+        }
+        string jsonBody = arr.dump();
+        auto res = cli.Post("/peoplestay", jsonBody, "application/json");
+        if (!res) {  
+            std::cout << "Error: " << res.error() << std::endl;
+        } 
     }
     mtx.unlock();
 }

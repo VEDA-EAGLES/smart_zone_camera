@@ -66,6 +66,7 @@ struct ObjectInfo{
 
 class Area_Handler {
 private:
+    double elapsed_time=10.0;
     std::vector<Area> area_list;
     std::map<int, std::map<int, ObjectInfo>> objects; //key: area_id, value:(key:object_id, value:Tbegin, Tend)
     std::chrono::system_clock::time_point current_time, prev_time;

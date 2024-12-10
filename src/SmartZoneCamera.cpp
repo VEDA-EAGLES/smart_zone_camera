@@ -49,3 +49,15 @@ void SmartZoneCamera::init()
 {
     detector.init("../model/yoloxN.param", "../model/yoloxN.bin");
 }
+
+std::vector<People_count> SmartZoneCamera::get_peoplecount() {
+    return area_ctrl.calc_peoplecount();
+}
+
+std::vector<People_stay> SmartZoneCamera::get_stay() {
+    return area_ctrl.calc_timespent();
+}
+
+std::vector<People_move> SmartZoneCamera::get_move() {
+    return area_ctrl.calc_path();
+}

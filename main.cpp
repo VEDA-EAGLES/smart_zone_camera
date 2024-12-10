@@ -36,11 +36,11 @@ int main(int argc, char** argv)
         HTTPClient httpClient;
         httplib::Client cli = httpClient.setClient(SERVER_IP,HTTP_C_PORT);
         while(true) {
-            this_thread::sleep_for(std::chrono::minutes(1));
-            // httpClient.sendHTTP(cli);
-            // httpClient.s(smar.peocntvector)
-            // htobe16
-            // http
+            // this_thread::sleep_for(std::chrono::minutes(1));
+            this_thread::sleep_for(std::chrono::seconds(10));
+            httpClient.sendPeopleCount(cli,smartZoneCamera.get_peoplecount());
+            httpClient.sendPeopleMove(cli,smartZoneCamera.get_move());
+            httpClient.sendPeopleStay(cli,smartZoneCamera.get_stay());
         }
     });
     

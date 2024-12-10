@@ -28,5 +28,8 @@ public:
     void init();
     cv::Mat processFrame(cv::Mat& frame);
     Area_Handler area_ctrl;
+    std::vector<People_count> get_peoplecount();
+    std::vector<People_stay> get_stay();
+    std::vector<People_move> get_move();
 };
 
