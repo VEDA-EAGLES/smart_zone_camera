@@ -127,7 +127,4 @@ LCCV는 실시간으로 카메라 데이터를 캡처하고 처리하는 데 사
    ```bash
    git clone https://github.com/VEDA-EAGLES/smart_zone_camera.git
    cd smart_zone_camera
-   mkdir build && cd build
-   cmake ..
-   make
-   ./smart_zone_camera
+   ./smart_zone_camera <IP ADDRESS>

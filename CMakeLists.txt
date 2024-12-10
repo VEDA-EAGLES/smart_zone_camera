@@ -69,6 +69,7 @@ target_link_libraries(smart_zone_camera
     ${OpenMP_CXX_LIBRARIES}  # OpenMP 라이브러리 링크
     ${LCCV_LIB_DIR}/liblccv.so  # lccv 라이브러리 명시적으로 지정
     ${NCNN_LIB_DIR}/libncnn.a  # ncnn 라이브러리 명시적으로 지정
+    gstapp-1.0
 )
 
 # C++17 표준 사용
