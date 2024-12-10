@@ -72,6 +72,14 @@ std::vector<People_stay> Area_Handler::calc_timespent() {
             const auto& obj_info = obj_pair.second;
 
             auto time_since_last_seen = std::chrono::duration_cast<std::chrono::seconds>(current_time - obj_info.Tend);
+
+            if (time_since_last_seen.count() < elapsed_time) {
+                auto it = std::find(lost_objects.begin(), lost_objects.end(), object_id);
+                if (it != lost_objects.end()) {
+                    lost_objects.erase(it);
+                }
+            }
+
             if (time_since_last_seen.count() >= 1) {
                 auto duration = std::chrono::duration_cast<std::chrono::seconds>(obj_info.Tend - obj_info.Tbegin);
 
@@ -113,16 +121,17 @@ std::vector<People_move> Area_Handler::calc_path() {
                     const ObjectInfo& other_info = it->second;
                     
                     if (other_info.Tbegin > info.Tend && 
-                        std::chrono::duration_cast<std::chrono::seconds>(current_time - other_info.Tend).count() <= ELAPSEDTIME) {
+                        std::chrono::duration_cast<std::chrono::seconds>(current_time - other_info.Tend).count() <= elapsed_time) {
                         path_counts[{from_area_id, to_area_id}]++;
                     }
                 }
             }
         }
     }
-    
+
+    std::chrono::duration<double> elapsed_system_time(elapsed_time);
     for (const auto& path : path_counts) {
-        result.emplace_back(path.first.first, path.first.second, path.second, prev_time, current_time);
+        result.emplace_back(path.first.first, path.first.second, path.second, std::chrono::time_point_cast<std::chrono::system_clock::duration>(current_time - elapsed_system_time), current_time);
         /*std::cout << "from_area_id = " << path.first.first
                     << ", to_area_id = " << path.first.second
                     << ", count = " << path.second

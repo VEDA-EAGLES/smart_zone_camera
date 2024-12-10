@@ -1,8 +1,6 @@
 #pragma once
 #include <opencv2/opencv.hpp>
 
-#define ELAPSEDTIME 5.0
-
 struct Area
 {
     int x,y,width,height;
@@ -64,6 +62,7 @@ struct ObjectInfo{
 
 class Area_Handler {
 private:
+    double elapsed_time=5.0;
     std::vector<Area> area_list;
     std::map<int, std::map<int, ObjectInfo>> objects; //key: area_id, value:(key:object_id, value:Tbegin, Tend)
     std::chrono::system_clock::time_point current_time, prev_time;

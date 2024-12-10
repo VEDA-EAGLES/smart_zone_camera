@@ -72,12 +72,12 @@ void SmartZoneCamera::processFrame() {
             area_ctrl.draw_area(frame,a,output_stracks[i].track_id);
         }
     }
-    area_ctrl.calc_timespent();
+
     auto now = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed = now - last_video_event_time;
-    if (elapsed.count() >= ELAPSEDTIME) {
+    if (elapsed.count() >= 5.0) {
         last_video_event_time = now;
-        //area_ctrl.calc_path();
+        get_stay();
     }
 
     fpsInfo.endCheckFrame();
@@ -116,4 +116,16 @@ void SmartZoneCamera::finalize() {
     cv::destroyAllWindows();
     originalVideoWriter.release();
     trackingVideoWriter.release();
+}
+
+std::vector<People_count> SmartZoneCamera::get_peoplecount() {
+    return area_ctrl.calc_peoplecount();
+}
+
+std::vector<People_stay> SmartZoneCamera::get_stay() {
+    return area_ctrl.calc_timespent();
+}
+
+std::vector<People_move> SmartZoneCamera::get_move() {
+    return area_ctrl.calc_path();
 }

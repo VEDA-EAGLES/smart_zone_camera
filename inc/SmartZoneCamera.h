@@ -31,6 +31,10 @@ public:
     void processFrame();
     void run();
     void finalize();
+
+    std::vector<People_count> get_peoplecount();
+    std::vector<People_stay> get_stay();
+    std::vector<People_move> get_move();
 };
 
 #endif // SMART_ZONE_CAMERA_H
