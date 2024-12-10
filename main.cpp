@@ -6,42 +6,91 @@
 #include "httpServer.h"
 #include "httpClient.h"
 #include "gstreamerServer.h"
+#include "SmartZoneCamera.h"
 
 using namespace std;
 
-void startHTTPServer(int);
-void startHTTPClient(int);
+bool camInit(string myIp,cv::VideoCapture& cap, cv::VideoWriter& udpWriter);
 
 mutex mtx;
+string MY_IP;
 
 int main(int argc, char** argv)
 {
-    thread httpServerThread = thread(startHTTPServer, 1);
-    // thread httpClientThread = thread(startHTTPClient, 2);
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <Ip Address>" << std::endl;
+        return 1;
+    }
+    MY_IP = argv[1];
+    std::cout << "IP ADDRESS: " << MY_IP << std::endl;
+
+    SmartZoneCamera& smartZoneCamera = SmartZoneCamera::getInstance();
+    smartZoneCamera.init();
+    
+    thread receiveHTTP([]() {
+        HTTPServer httpServer(MY_IP, HTTP_S_PORT);
+        httpServer.setHTTPServer();
+    });
+
+    thread sendHTTP([&smartZoneCamera]() {
+        HTTPClient httpClient;
+        httplib::Client cli = httpClient.setClient(SERVER_IP,HTTP_C_PORT);
+        while(true) {
+            this_thread::sleep_for(std::chrono::minutes(1));
+            // httpClient.sendHTTP(cli);
+            // httpClient.s(smar.peocntvector)
+            // htobe16
+            // http
+        }
+    });
+    
+    thread operateProcess([&smartZoneCamera]() {
+        cv::VideoCapture cap;
+        cv::VideoWriter udpWriter;
+        cv::Mat frame(640, 480, CV_8UC3, cv::Scalar(255));
+        camInit(MY_IP,cap,udpWriter);
+        while(true) {
+            cap >> frame; 
+            // 프레임이 없으면 (영상이 끝났으면) 종료
+            if (frame.empty()) {
+                std::cout << "End of video." << std::endl;
+            }
+            udpWriter.write(smartZoneCamera.processFrame(frame));
+        }
+    });
     
     GstreamerServer rtspServer;
-    rtspServer.setRTSPServer(argc,argv);
+    rtspServer.setRTSPServer(MY_IP);
 
-    httpServerThread.join();
-    // httpClientThread.join();
+    receiveHTTP.detach();
+    sendHTTP.detach();
+    operateProcess.detach();
 
     return 0;
 }
 
-void startHTTPServer(int thread_id) 
+bool camInit(string myIp,cv::VideoCapture& cap, cv::VideoWriter& udpWriter) 
 {
-    HTTPServer httpServer(MY_IP, HTTP_S_PORT);
-    httpServer.setHTTPServer();
-}
+    std::cout << "Initializing Camera..." << std::endl;
 
-void startHTTPClient(int thread_id) 
-{
-    HTTPClient httpClient;
-    httplib::Client cli(SERVER_IP, HTTP_C_PORT);
+    // Open the camera with GStreamer pipeline
+    std::string capturePipeline = "libcamerasrc ! videoconvert ! video/x-raw,framerate=10/1,width=640,height=480,format=BGR ! queue ! appsink";
 
-    while(true) {
-        httpClient.startHTTPClient(cli);
-        this_thread::sleep_for(std::chrono::minutes(1));
+    cap.open(capturePipeline, cv::CAP_GSTREAMER);
+    if (!cap.isOpened()) {
+        std::cerr << "Failed to open video capture pipeline." << std::endl;
+        return false;
     }
+
+    std::string writerPipeline = "appsrc is-live=true ! videoconvert ! video/x-raw,format=I420 ! queue ! x264enc ! rtph264pay ! udpsink host=" + myIp +" port=5000";
+    udpWriter.open(writerPipeline,cv::CAP_GSTREAMER, 0, 10.0, cv::Size(640, 480), true);
+    
+    if (!udpWriter.isOpened()) {
+        cout << "can't create video writer\n";
+        return false;
+    }
+
+    return true;
 }
+
 

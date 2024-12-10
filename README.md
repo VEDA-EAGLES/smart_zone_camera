@@ -2,13 +2,5 @@
 
 실행 방법
 
-mkdir build
-
-cd build
-
-cmake ..
-
-make
-
-./smart_zone_camera
+./smart_zone_camera <IP ADDRESS>
 

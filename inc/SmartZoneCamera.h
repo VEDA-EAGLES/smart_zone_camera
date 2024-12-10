@@ -14,27 +14,19 @@ private:
     SmartZoneCamera();
     ~SmartZoneCamera();
     SmartZoneCamera(const SmartZoneCamera& ref) {}
-    SmartZoneCamera& operator=(const SmartZoneCamera& ref) {}
-    lccv::PiCamera cam;
+    SmartZoneCamera& operator=(const SmartZoneCamera& ref) {return *this;}
     Piframe fpsInfo;
     YoloX detector;
     BYTETracker tracker;
-    cv::VideoWriter originalVideoWriter;
-    cv::VideoWriter trackingVideoWriter;
-    cv::VideoWriter udpWriter;
     int fps;
-    cv::Mat frame;
-    cv::VideoCapture cap;
 
 public:
     static SmartZoneCamera& getInstance() {
         static SmartZoneCamera s;
         return s;
     }
-    bool initialize();
-    void processFrame();
-    void run();
-    void finalize();
+    void init();
+    cv::Mat processFrame(cv::Mat& frame);
     Area_Handler area_ctrl;
 };
 

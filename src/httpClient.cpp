@@ -4,37 +4,42 @@
 HTTPClient::HTTPClient() {}
 HTTPClient::~HTTPClient() {}
 
-string HTTPClient::getVideoInfo(string areaName, int areaId, int cameraId, int x, int y, int width, int height)
+// 주기적으로 송신할 주소 설정
+httplib::Client HTTPClient::setClient(string clientIp, int port)
 {
-    // JSON 데이터 생성
-    json jsonData;
-    jsonData["area"] = json::array();
-
-    json areaData;
-    areaData["area_name"] = areaName;
-    areaData["area_id"] = areaId;
-    areaData["camera_id"] = cameraId;
-    areaData["x"] = x;
-    areaData["y"] = y;
-    areaData["width"] = width;
-    areaData["height"] = height;
-
-    jsonData["area"].push_back(areaData);
-
-    // JSON 데이터를 문자열로 변환
-    string jsonBody = jsonData.dump();
-    return jsonBody;                     
+    std::cout << "Send Video-Info To "<< clientIp << " Periodically" << endl;
+    httplib::Client cli(SERVER_IP, HTTP_C_PORT);
+    return cli;
 }
 
 // 카메라에서 서버로 주기적 비디오 정보 송신
-void HTTPClient::startHTTPClient(httplib::Client& cli)
+void HTTPClient::sendPeopleCount(httplib::Client& cli, std::vector<People_count> peopleCnts) 
 {  
     mtx.lock();
-    string jsonBody = getVideoInfo("areaName",1,0,0,0,0,0);
-    auto res = cli.Post("/video", jsonBody, "application/json");
-    if (res) {  
-    } else {
-        std::cout << "Error: " << res.error() << std::endl;
+    if (!peopleCnts.empty()) {
+         std::cout << " sendPeopleCount " << endl;
+
+        
+
+
+    }
+    mtx.unlock();
+}
+// 카메라에서 서버로 주기적 비디오 정보 송신
+void HTTPClient::sendPeopleMove(httplib::Client& cli, std::vector<People_move> peopleMoves)
+{  
+    mtx.lock();
+    if (!peopleMoves.empty()) {
+         std::cout << " sendPeopleMove " << endl;
+    }
+    mtx.unlock();
+}
+// 카메라에서 서버로 주기적 비디오 정보 송신
+void HTTPClient::sendPeopleStay(httplib::Client& cli, std::vector<People_stay> peopleStays)
+{  
+    mtx.lock();
+    if (!peopleStays.empty()) {
+         std::cout << " sendPeopleStay " << endl;
     }
     mtx.unlock();
 }

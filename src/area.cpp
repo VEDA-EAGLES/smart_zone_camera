@@ -1,22 +1,5 @@
 #include "area.h"
 
-// void Area::showAreaInfo()
-// {
-//     cout << "showAreaInfo" << endl;
-//     cout << "name: " << name << ", " << "cameraId: " << cameraId << ", " << "id: " << id << ", " 
-//     << "x: " << x << ", " << "y: " << y << ", " << "width: " << width << ", " << "height: " << height << endl;
-// }
-
-// bool Area::deleteArea(int areaId)
-// {
-//     if (this->id == areaId) {
-//         return true;
-//     }
-//     else {
-//         return false;
-//     }
-// }
-
 void Area_Handler::insertArea(std::string name, std::string color, int cameraId, int id, int x, int y, int width, int height)
 {
     area_list.push_back(Area(x,y,width,height,id,cameraId,name,color));
@@ -38,13 +21,12 @@ void Area_Handler::deleteArea(int areaId)
 }
 
 void Area_Handler::init(){
-    current_time=std::chrono::steady_clock::now();
+    current_time=std::chrono::system_clock::now();
 }
 
 void Area_Handler::update(cv::Mat& frame) {
     prev_time=current_time;
-    current_time=std::chrono::steady_clock::now();
-    objects.clear();
+    current_time=std::chrono::system_clock::now();
     for (Area a:area_list) {
         int id=a.areaId;
         cv::putText(frame, cv::format("%d : %s", id, a.areaName), cv::Point(a.x, a.y - 5),
@@ -63,6 +45,7 @@ bool Area_Handler::area_within(Area a2, int id) {
             else{
                 objects[a1.areaId][id].Tend=current_time;
             }
+            
             return true;
         }
     }
@@ -75,63 +58,80 @@ void Area_Handler::draw_area(cv::Mat& frame, Area a, int id) {
     cv::rectangle(frame, cv::Rect(a.x,a.y,a.width,a.height), cv::Scalar(37 * idx % 255, 17 * idx % 255, 29 * idx % 255), 2);
 }
 
-void Area_Handler::calc_peoplecount(){
-    std::vector<int> peoplecount;
-    for (Area a1:area_list){
-        int size=0;
-        for (auto it = objects[a1.areaId].begin(); it != objects[a1.areaId].end(); it++) {
-            if(it->second.Tend>=current_time)
-                size++;
+std::vector<People_count> Area_Handler::calc_peoplecount() {
+    std::vector<People_count> result;
+    for (const Area& a : area_list) {
+        int count = 0;
+        for (const auto& obj : objects[a.areaId]) {
+            if (obj.second.Tend >= current_time)
+                count++;
         }
-        peoplecount.push_back(size);
+        result.emplace_back(a.areaId, count, prev_time, current_time);
+        
     }
+    return result;
 }
 
-void Area_Handler::calc_timespent(){
-    std::vector<int> timespent;
-    for (Area a1:area_list){
-        int size=0;
-        float sum=0;
-        for (auto it = objects[a1.areaId].begin(); it != objects[a1.areaId].end(); it++) {
-            if(it->second.Tend>=current_time){
-                size++;
-                std::chrono::duration<float> duration = it->second.Tend-it->second.Tbegin;
-                sum+=duration.count();
-            }
-        }
-        if(size>0)
-            timespent.push_back(sum/size);
-        else
-            timespent.push_back(0);
-    }
-}
+std::vector<People_stay> Area_Handler::calc_timespent() {
+    std::vector<People_stay> result;
 
-void Area_Handler::calc_path(){//사용안함
-    std::map<std::pair<int, int>, int> total_path;
-    int max_id = -1;
-    for (Area a1:area_list){
-        int id = objects[a1.areaId].rbegin()->first;
-        if(id>max_id)
-            max_id=id;
-    }
-    for(int id=1;id<=max_id;id++){
-        int prevAreaId=-1,areaId=-1;
-        std::chrono::steady_clock::time_point last_time;
-        for (Area a1:area_list){
-            auto key=objects[a1.areaId].find(id);
-            if(key!=objects[a1.areaId].end()){
-                if(areaId==-1){
-                    areaId=a1.areaId;
-                    last_time=key->second.Tend;
-                }
-                else if(last_time<key->second.Tend){
-                    prevAreaId=areaId;
-                    areaId=a1.areaId;
-                    last_time=key->second.Tend;
+    for (const auto& area_pair : objects) {
+        int area_id = area_pair.first;
+        auto& object_map = area_pair.second;
+
+        for (const auto& obj_pair : object_map) {
+            int object_id = obj_pair.first;
+            const auto& obj_info = obj_pair.second;
+
+            auto time_since_last_seen = std::chrono::duration_cast<std::chrono::seconds>(current_time - obj_info.Tend);
+            if (time_since_last_seen.count() >= 1) {
+                auto duration = std::chrono::duration_cast<std::chrono::seconds>(obj_info.Tend - obj_info.Tbegin);
+
+                if (duration.count() > 0 && std::find(lost_objects.begin(), lost_objects.end(), object_id) == lost_objects.end()) {
+                    result.emplace_back(area_id, duration.count(), obj_info.Tbegin, obj_info.Tend);
+                    lost_objects.push_back(object_id);
+                    
                 }
             }
         }
-        if(prevAreaId!=-1 && areaId!=-1)
-            total_path[std::make_pair(prevAreaId, areaId)]++;
     }
+
+    return result;
+}
+
+std::vector<People_move> Area_Handler::calc_path() {
+    std::vector<People_move> result;
+    std::map<std::pair<int, int>, int> path_counts;
+    
+    for (const auto& area_entry : objects) {
+        int from_area_id = area_entry.first;
+        
+        for (const auto& object_entry : area_entry.second) {
+            int object_id = object_entry.first;
+            const ObjectInfo& info = object_entry.second;
+            
+            for (const auto& other_area_entry : objects) {
+                int to_area_id = other_area_entry.first;
+                
+                if (from_area_id == to_area_id) continue;
+                
+                auto it = other_area_entry.second.find(object_id);
+                if (it != other_area_entry.second.end()) {
+                    const ObjectInfo& other_info = it->second;
+                    
+                    if (other_info.Tbegin > info.Tend && 
+                        std::chrono::duration_cast<std::chrono::seconds>(current_time - other_info.Tend).count() <= ELAPSEDTIME) {
+                        path_counts[{from_area_id, to_area_id}]++;
+                    }
+                }
+            }
+        }
+    }
+    
+    for (const auto& path : path_counts) {
+        result.emplace_back(path.first.first, path.first.second, path.second, prev_time, current_time);
+        
+    }
+    
+    return result;
 }
