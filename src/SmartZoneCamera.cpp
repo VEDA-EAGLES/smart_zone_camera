@@ -30,7 +30,7 @@ cv::Mat SmartZoneCamera::processFrame(cv::Mat& frame) {
     }
     /*auto now = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed = now - last_video_event_time;
-    if (elapsed.count() >= ELAPSEDTIME) {
+    if (elapsed.count() >= 5.0) {
         last_video_event_time = now;
         area_ctrl.calc_peoplecount();
         area_ctrl.calc_timespent();

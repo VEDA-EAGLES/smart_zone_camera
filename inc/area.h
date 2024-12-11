@@ -1,7 +1,6 @@
 #pragma once
 #include <opencv2/opencv.hpp>
-
-#define ELAPSEDTIME 60.0
+#include <iomanip>
 
 struct Area
 {

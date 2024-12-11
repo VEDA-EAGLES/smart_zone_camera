@@ -32,8 +32,8 @@ void Area_Handler::update(cv::Mat& frame) {
         int g = std::stoi(a.color.substr(3, 2), nullptr, 16);
         int b = std::stoi(a.color.substr(5, 2), nullptr, 16);
         cv::putText(frame, std::to_string(a.areaId) + " : " + a.areaName, cv::Point(a.x, a.y - 5),
-                    0, 0.6, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
-        cv::rectangle(frame, cv::Rect(a.x,a.y,a.width,a.height), cv::Scalar(b, g, r), 2);
+                    0, 0.6, cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
+        cv::rectangle(frame, cv::Rect(a.x,a.y,a.width,a.height), cv::Scalar(b, g, r), 1);
     }
 }
 
@@ -56,8 +56,8 @@ bool Area_Handler::area_within(Area a2, int id) {
 
 void Area_Handler::draw_area(cv::Mat& frame, Area a, int id) {
     int idx=id+static_cast<int>(area_list.size());
-    cv::putText(frame, cv::format("%d", id), cv::Point(a.x, a.y - 5), 0, 0.6, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
-    cv::rectangle(frame, cv::Rect(a.x,a.y,a.width,a.height), cv::Scalar(37 * idx % 255, 17 * idx % 255, 29 * idx % 255), 2);
+    cv::putText(frame, cv::format("%d", id), cv::Point(a.x, a.y - 5), 0, 0.6, cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
+    cv::rectangle(frame, cv::Rect(a.x,a.y,a.width,a.height), cv::Scalar(37 * idx % 255, 17 * idx % 255, 29 * idx % 255), 1);
 }
 
 std::vector<People_count> Area_Handler::calc_peoplecount() {
@@ -69,11 +69,13 @@ std::vector<People_count> Area_Handler::calc_peoplecount() {
                 count++;
         }
         result.emplace_back(a.areaId, count, prev_time, current_time);
-        /*std::cout << "Area ID = " << a.areaId
-                    << ", people count = " << count
-                    << ", Begin Time = " << prev_time.time_since_epoch().count()
-                    << ", End Time = " << current_time.time_since_epoch().count()
-                    << std::endl;*/
+        std::time_t prev_time_t = std::chrono::system_clock::to_time_t(prev_time);
+        std::time_t current_time_t = std::chrono::system_clock::to_time_t(current_time);
+        std::cout << "Area ID : " << a.areaId
+                    << " has " << count << " people"
+                    << ", Begin Time = " << std::put_time(std::localtime(&prev_time_t), "%Y-%m-%d %H:%M:%S")
+                    << ", End Time = " << std::put_time(std::localtime(&current_time_t), "%Y-%m-%d %H:%M:%S")
+                    << std::endl;
     }
     return result;
 }
@@ -104,12 +106,14 @@ std::vector<People_stay> Area_Handler::calc_timespent() {
                 if (duration.count() > 0 && std::find(lost_objects.begin(), lost_objects.end(), object_id) == lost_objects.end()) {
                     result.emplace_back(area_id, duration.count(), obj_info.Tbegin, obj_info.Tend);
                     lost_objects.push_back(object_id);
-                    /*std::cout << "Added object: Area ID = " << area_id
-                              << ", Object ID = " << object_id
+                    std::time_t begin_time_t = std::chrono::system_clock::to_time_t(obj_info.Tbegin);
+                    std::time_t end_time_t = std::chrono::system_clock::to_time_t(obj_info.Tend);
+                    std::cout << "Object ID : " << object_id
+                              << " in Area ID : " << area_id
                               << ", Duration = " << duration.count() << " seconds"
-                              << ", Begin Time = " << obj_info.Tbegin.time_since_epoch().count()
-                              << ", End Time = " << obj_info.Tend.time_since_epoch().count()
-                              << std::endl;*/
+                              << ", Begin Time = " << std::put_time(std::localtime(&begin_time_t), "%Y-%m-%d %H:%M:%S")
+                              << ", End Time = " << std::put_time(std::localtime(&end_time_t), "%Y-%m-%d %H:%M:%S")
+                              << std::endl;
                 }
             }
         }
@@ -121,42 +125,44 @@ std::vector<People_stay> Area_Handler::calc_timespent() {
 std::vector<People_move> Area_Handler::calc_path() {
     std::vector<People_move> result;
     std::map<std::pair<int, int>, int> path_counts;
-    
+    std::chrono::duration<double> elapsed_system_time(elapsed_time);
+
     for (const auto& area_entry : objects) {
         int from_area_id = area_entry.first;
-        
+
         for (const auto& object_entry : area_entry.second) {
             int object_id = object_entry.first;
             const ObjectInfo& info = object_entry.second;
-            
+
             for (const auto& other_area_entry : objects) {
                 int to_area_id = other_area_entry.first;
-                
+
                 if (from_area_id == to_area_id) continue;
-                
+
                 auto it = other_area_entry.second.find(object_id);
                 if (it != other_area_entry.second.end()) {
                     const ObjectInfo& other_info = it->second;
-                    
-                    if (other_info.Tbegin > info.Tend && 
+
+                    if (other_info.Tbegin > info.Tend &&
                         std::chrono::duration_cast<std::chrono::seconds>(current_time - other_info.Tend).count() <= elapsed_time) {
                         path_counts[{from_area_id, to_area_id}]++;
+                        std::time_t prev_time_t = std::chrono::system_clock::to_time_t(std::chrono::time_point_cast<std::chrono::system_clock::duration>(current_time - elapsed_system_time));
+                        std::time_t current_time_t = std::chrono::system_clock::to_time_t(current_time);
+                        std::cout << "object id : " << object_id
+                                    << " move from area id : " << from_area_id
+                                    << " to area id : " << to_area_id
+                                    << ", Begin Time = " << std::put_time(std::localtime(&prev_time_t), "%Y-%m-%d %H:%M:%S")
+                                    << ", End Time = " << std::put_time(std::localtime(&current_time_t), "%Y-%m-%d %H:%M:%S")
+                                    << std::endl;
                     }
                 }
             }
         }
     }
 
-    std::chrono::duration<double> elapsed_system_time(elapsed_time);
     for (const auto& path : path_counts) {
         result.emplace_back(path.first.first, path.first.second, path.second, std::chrono::time_point_cast<std::chrono::system_clock::duration>(current_time - elapsed_system_time), current_time);
-        /*std::cout << "from_area_id = " << path.first.first
-                    << ", to_area_id = " << path.first.second
-                    << ", count = " << path.second
-                    << ", Begin Time = " << prev_time.time_since_epoch().count()
-                    << ", End Time = " << current_time.time_since_epoch().count()
-                    << std::endl;*/
     }
-    
+
     return result;
 }
