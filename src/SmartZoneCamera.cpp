@@ -25,18 +25,16 @@ cv::Mat SmartZoneCamera::processFrame(cv::Mat& frame) {
         Area a(tlwh[0],tlwh[1],tlwh[2],tlwh[3]);
         if(area_ctrl.area_within(a,output_stracks[i].track_id)){
             area_ctrl.draw_area(frame,a,output_stracks[i].track_id);
-
         }
     }
-    // peoplevector = area_ctrl.calc_peoplecount();
-
-    area_ctrl.calc_timespent();
-    auto now = std::chrono::system_clock::now();
+    /*auto now = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed = now - last_video_event_time;
     if (elapsed.count() >= ELAPSEDTIME) {
         last_video_event_time = now;
+        area_ctrl.calc_peoplecount();
+        area_ctrl.calc_timespent();
         area_ctrl.calc_path();
-    }
+    }*/
     
     fpsInfo.endCheckFrame();
     float FPS = fpsInfo.calculateFrame();

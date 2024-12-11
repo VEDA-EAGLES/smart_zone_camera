@@ -29,7 +29,7 @@ void Area_Handler::update(cv::Mat& frame) {
     current_time=std::chrono::system_clock::now();
     for (Area a:area_list) {
         int id=a.areaId;
-        cv::putText(frame, cv::format("%d : %s", id, a.areaName), cv::Point(a.x, a.y - 5),
+        cv::putText(frame, cv::format("%d : %s", id, a.areaName.c_str()), cv::Point(a.x, a.y - 5),
                     0, 0.6, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
         cv::rectangle(frame, cv::Rect(a.x,a.y,a.width,a.height), cv::Scalar(37 * id % 255, 17 * id % 255, 29 * id % 255), 2);
     }
@@ -67,7 +67,11 @@ std::vector<People_count> Area_Handler::calc_peoplecount() {
                 count++;
         }
         result.emplace_back(a.areaId, count, prev_time, current_time);
-        
+        /*std::cout << "Area ID = " << a.areaId
+                    << ", people count = " << count
+                    << ", Begin Time = " << prev_time.time_since_epoch().count()
+                    << ", End Time = " << current_time.time_since_epoch().count()
+                    << std::endl;*/
     }
     return result;
 }
