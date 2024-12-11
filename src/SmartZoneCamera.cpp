@@ -14,8 +14,8 @@ cv::Mat SmartZoneCamera::processFrame(cv::Mat& frame) {
     fpsInfo.startCheckFrame();
     // Object detection
     std::vector<Object> objects;
-    objects.erase(std::remove_if(objects.begin(), objects.end(), [](const Object& obj) {return obj.label != 0;}), objects.end());
     detector.detect_yolox(frame, objects);
+    objects.erase(std::remove_if(objects.begin(), objects.end(), [](const Object& obj) {return obj.label != 0;}), objects.end());
     // Object tracking
     std::vector<STrack> output_stracks = tracker.update(objects);
     
