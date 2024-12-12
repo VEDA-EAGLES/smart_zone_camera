@@ -42,6 +42,7 @@ YOLOvX를 사용하여 객체 감지 및 추적을 구현하려면 아래와 같
     sudo apt-get install cmake wget
     sudo apt-get install build-essential gcc g++
     sudo apt-get install libprotobuf-dev protobuf-compiler
+    sudo apt-get install libeigen3-dev
     ```
 
     #### 3. `ncnn` 다운로드
