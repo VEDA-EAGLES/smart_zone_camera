@@ -12,10 +12,6 @@ pkg_check_modules(LIBCAMERA REQUIRED libcamera)
 pkg_check_modules(GST REQUIRED gstreamer-1.0)
 pkg_check_modules(GSTRTSP REQUIRED gstreamer-rtsp-server-1.0)
 
-# 사용자 정의 경로 설정
-set(NCNN_DIR "/home/pi/ncnn")
-set(LCCV_DIR "/usr/local")
-
 # 포함 디렉토리 설정
 include_directories(
         inc
@@ -23,14 +19,14 @@ include_directories(
         ${GSTRTSP_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
         ${LIBCAMERA_INCLUDE_DIRS}
-        ${NCNN_DIR}/build/install/include/ncnn
+        /usr/local/include/ncnn/
         ${EIGEN3_INCLUDE_DIR}
 )
 
 # 라이브러리 디렉토리 설정
 link_directories(
-        ${NCNN_DIR}/build/install/lib
-        ${LCCV_DIR}/lib
+        /usr/local/lib/ncnn/libncnn.a
+        /usr/local/lib
 )
 
 # 소스 파일 목록
@@ -59,8 +55,8 @@ target_link_libraries(${PROJECT_NAME}
         ${OpenCV_LIBRARIES}
         ${LIBCAMERA_LIBRARIES}
         ${OpenMP_CXX_LIBRARIES}
-        ${LCCV_DIR}/lib/liblccv.so
-        ${NCNN_DIR}/build/install/lib/libncnn.a
+        /usr/local/lib/liblccv.so
+        /usr/local/lib/ncnn/libncnn.a
         gstapp-1.0
 )
 

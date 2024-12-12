@@ -17,7 +17,7 @@ YOLOvX를 사용하여 객체 감지 및 추적을 구현하려면 아래와 같
   - 이미지 처리 작업을 위해 OpenCV가 필요합니다.
   - OpenCV 4.6.0을 설치하려면 다음 명령어를 사용합니다:
     ```bash
-    wget https://github.com/opencv/opencv/tree/4.6.0
+    sudo apt install libopencv-dev
     ```
 
 - **ncnn**
@@ -94,7 +94,26 @@ LCCV는 실시간으로 카메라 데이터를 캡처하고 처리하는 데 사
   - libCamera를 설치하려면 아래 명령어를 사용합니다:
     ```bash
     sudo apt install libcamera-apps
-    sudo apt-get install libcamera
+    sudo apt install libcamera-dev
+    ```
+
+- **LCCV**
+  #### 1. `LCCV` 다운로드
+    `LCCV` 소스 코드를 GitHub에서 클론하여 다운로드합니다.
+    ```bash
+    git clone https://github.com/kbarni/LCCV.git
+    ```
+
+  #### 2. `LCCV` 빌드 및 설치
+    `LCCV` 디렉토리로 이동 후 빌드를 시작합니다.
+
+    ```bash
+    cd LCCV
+    mkdir build
+    cd build
+    cmake ..
+    make
+    sudo make install
     ```
 
 ### 카메라 / 서버 의존성
@@ -117,6 +136,7 @@ LCCV는 실시간으로 카메라 데이터를 캡처하고 처리하는 데 사
     gstreamer1.0-plugins-good \
     gstreamer1.0-x \
     gstreamer1.0-libav \
+    gstreamer1.0-libcamera \
     gstreamer1.0-tools
     
     sudo apt-get install libglib2.0-dev libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa libgstrtspserver-1.0-0
