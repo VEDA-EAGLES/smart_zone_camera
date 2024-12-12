@@ -11,7 +11,6 @@ std::chrono::system_clock::time_point last_video_event_time = std::chrono::syste
 
 cv::Mat SmartZoneCamera::processFrame(cv::Mat& frame) {
 
-    fpsInfo.startCheckFrame();
     // Object detection
     std::vector<Object> objects;
     detector.detect_yolox(frame, objects);
@@ -28,18 +27,6 @@ cv::Mat SmartZoneCamera::processFrame(cv::Mat& frame) {
             area_ctrl.draw_area(frame,a,output_stracks[i].track_id);
         }
     }
-    /*auto now = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed = now - last_video_event_time;
-    if (elapsed.count() >= 5.0) {
-        last_video_event_time = now;
-        area_ctrl.calc_peoplecount();
-        area_ctrl.calc_timespent();
-        area_ctrl.calc_path();
-    }*/
-    
-    fpsInfo.endCheckFrame();
-    float FPS = fpsInfo.calculateFrame();
-    cv::putText(frame, cv::format("FPS %0.2f", FPS / 16), cv::Point(10, 20), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 0, 255));
 
     return frame;
 }

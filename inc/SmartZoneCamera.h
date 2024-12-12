@@ -3,7 +3,6 @@
 #include <lccv.hpp>
 #include <opencv2/opencv.hpp>
 #include "yoloX.h"
-#include "Piframe.h"
 #include "area.h"
 #include <chrono>
 #include <ctime>
@@ -15,7 +14,6 @@ private:
     ~SmartZoneCamera();
     SmartZoneCamera(const SmartZoneCamera& ref) {}
     SmartZoneCamera& operator=(const SmartZoneCamera& ref) {return *this;}
-    Piframe fpsInfo;
     YoloX detector;
     BYTETracker tracker;
     int fps;
