@@ -147,5 +147,9 @@ LCCV는 실시간으로 카메라 데이터를 캡처하고 처리하는 데 사
 1. 리포지토리를 클론합니다:
    ```bash
    git clone https://github.com/VEDA-EAGLES/smart_zone_camera.git
-   cd smart_zone_camera
+
+2. 카메라와 연결될 서버를 설정합니다.
+   cd smart_zone_camera/inc/define.h => define.h의 SERVER_IP를 "<서버 IP>"로 변경
+   
+3. smart_zone_camera 경로의 셀스크립트에 카메라의 IP를 같이 입력하여 프로그램을 실행합니다.
    ./smart_zone_camera <IP ADDRESS>
